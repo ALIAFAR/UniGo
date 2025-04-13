@@ -1,3 +1,4 @@
+//поездка
 const Router=require('express')
 const router=new Router
 const tripController=require('../controllers/tripController')
