@@ -2,12 +2,16 @@ require('dotenv').config();
 const express = require('express'); // импортирует модуль express
 const pool = require('./db_pg');
 const cors = require('cors'); // корс для запросов с браузера
+const fileUpload = require('express-fileupload'); // корс для запросов с браузера
 const router = require('./routes/index');
 const errorHandler = require('./middleware/ErrorHandlingMiddleware');
+const path = require('path');
 
 const PORT = process.env.PORT || 5000; // порт, на котором приложение будет работать, полученный из переменного окружения
 
 const app = express(); // создаем объект, вызвав функцию express
+
+app.use(fileUpload({}))
 
 // Настройка CORS (должна быть до всех маршрутов)
 app.use(cors({
@@ -17,6 +21,10 @@ app.use(cors({
 }));
 
 app.use(express.json()); // Парсинг JSON-тела запросов
+
+// Раздача статических файлов (добавлено здесь)
+app.use('/static', express.static(path.join(__dirname, 'static')));
+
 app.use('/api', router); // Подключение маршрутов
 
 // Обработка ошибок, последний middleware
@@ -42,7 +50,7 @@ const start = async () => {
     }
 };
 
-const path = require('path');
+//const path = require('path');
 /*
 // Раздача статических файлов
 app.use(express.static(path.resolve(__dirname, '../client/UniGo')));
@@ -52,5 +60,8 @@ app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../client/UniGo', 'index.html'));
 });
 */
+
+const startTripStatusJob = require('./jobs/tripStatusJob');
+startTripStatusJob();
 
 start();

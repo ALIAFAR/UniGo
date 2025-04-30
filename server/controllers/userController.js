@@ -12,32 +12,115 @@ const generateJwt = (id, email, role) => {
     );
 };
 
+const uuid = require('uuid')
+const path= require('path')
+const fs = require('fs');
+
 class UserController {
+
+    async create_img(req, res, next) {
+        try {
+            const userId = req.user.id; // id из токена
+            const { avatar } = req.files; // файл называется 'avatar' в formData
+            console.log("1")
+            console.log("2",avatar) 
+            if (!avatar) {               
+                return next(ApiError.badRequest('Файл изображения не найден'));
+            }
+
+            let filename = uuid.v4() + ".jpg"; // Генерация уникального имени
+            const filePath = path.resolve(__dirname, '..', 'static', filename);
+            await avatar.mv(filePath); // Сохраняем файл
+
+            // Обновляем в БД через вызов функции update_user_img
+            await pool.query('SELECT update_user_img($1, $2)', [userId, filename]);
+
+            // Возвращаем success + url аватара
+            return res.json({
+                success: true,
+                avatarUrl: `/static/${filename}` // чтобы на фронте правильно подставлять
+            });
+        } catch (error) {
+            console.error(error);
+            return next(ApiError.internal('Ошибка при загрузке фото'));
+        }
+    }
+
+    async get_img(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const result = await pool.query('SELECT img FROM public.users WHERE id = $1', [userId]);
+            const user = result.rows[0];
+    
+            if (!user || !user.img) {
+                return res.json({ success: false, message: 'Аватар не найден' });
+            }
+    
+            return res.json({
+                success: true,
+                avatarUrl: `http://localhost:5000/static/${user.img}`
+            });
+        } catch (error) {
+            console.error(error);
+            return next(ApiError.internal('Ошибка при получении фото'));
+        }
+    }
+
+    async delete_img(req, res, next) {
+        try {
+            const userId = req.user.id;
+
+            const result = await pool.query('SELECT img FROM public.users WHERE id = $1', [userId]);
+            const user = result.rows[0];
+
+            if (!user || !user.img) {
+                return next(ApiError.badRequest('Фото не найдено'));
+            }
+
+            const filePath = path.resolve(__dirname, '..', 'static', user.img);
+
+            
+                
+
+                // Очищаем поле img в базе
+                await pool.query('SELECT update_user_img($1, $2)', [userId, null]);
+
+                return res.json({ message: 'Фото успешно удалено' });
+            
+
+        } catch (error) {
+            console.error(error);
+            return next(ApiError.internal('Ошибка при удалении фото'));
+        }
+    }
 
     async password_check(req, res, next) {
         try {
+            console.log("1")
             // Деструктурируем параметры из запроса
             const { password } = req.query;
-    
+            console.log("2")            
             // Проверяем, что все обязательные параметры переданы
             if (!password) {
                 return next(ApiError.badRequest('Необходимо указать временный пароль'));
             }
-    
+            console.log("3")  
             // Выполняем запрос к функции find_id_by_password
             const result = await pool.query(
                 `SELECT find_id_by_password($1) AS user_id`, // Вызываем функцию и получаем user_id
                 [password] // Передаем пароль как параметр
             );
-    
+            console.log("4")  
             // Извлекаем user_id из результата
             const user_id = result.rows[0].user_id;
-    
+            console.log("5")  
             // Если user_id не найден, возвращаем ошибку
             if (!user_id) {
+                console.log("Пользователь с таким паролем не найден")
                 return next(ApiError.badRequest('Пользователь с таким паролем не найден'));
             }
-    
+            console.log("6")  
+            console.log(user_id) 
             // Возвращаем найденный user_id
             return res.json({ user_id });
         } catch (error) {
@@ -218,7 +301,7 @@ class UserController {
             );
 
             if (rows.length === 0) {
-                return next(ApiError.badRequest('Пользователь нефор не найден.'));
+                return next(ApiError.badRequest('Пользователь не найден.'));
             }
 
             const user = rows[0];

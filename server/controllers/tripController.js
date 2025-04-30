@@ -10,7 +10,7 @@ class TripController {
                 route_id,
                 departureDate,
                 departureTime,
-                arrivalDate,
+                //arrivalDate,
                 arrivalTime,
                 passengersCount,
                 car, // car_number
@@ -30,7 +30,24 @@ class TripController {
     
             // Преобразуем строки в Date-объекты для PostgreSQL
             const departureTimestamp = new Date(`${departureDate}T${departureTime}:00Z`);
-            const arrivalTimestamp = new Date(`${arrivalDate}T${arrivalTime}:00Z`);
+            //const arrivalTimestamp = new Date(`${arrivalDate}T${arrivalTime}:00Z`);
+
+            // Разбиваем время в пути на часы, минуты и секунды
+            const [hours, minutes, seconds] = arrivalTime.split(':').map(Number);
+
+            // Создаем копию departureTimestamp, чтобы не изменять оригинал
+            const arrivalTimestamp = new Date(departureTimestamp);
+
+            // Добавляем время в пути
+            arrivalTimestamp.setHours(arrivalTimestamp.getHours() + hours);
+            arrivalTimestamp.setMinutes(arrivalTimestamp.getMinutes() + minutes);
+            arrivalTimestamp.setSeconds(arrivalTimestamp.getSeconds() + seconds);
+
+            console.log(arrivalTimestamp); // Результирующая дата и время прибытия
+
+            // Форматируем arrivalTimestamp в строку, аналогичную формату departureTimestamp
+            const arrivalDateString = arrivalTimestamp.toISOString().replace(/\.\d+Z$/, 'Z');
+            console.log(arrivalDateString); // Например: "2023-12-31T15:19:40Z"
     
             console.log(departureTimestamp, arrivalTimestamp);
     
@@ -143,19 +160,19 @@ class TripController {
             const {
                 departure_location,
                 arrival_location,
-                trip_date,
-                seats_needed
+                date,
+                seats
             } = req.query; // Изменили с req.body на req.query
             
             console.log("Параметры запроса:", { 
                 departure_location, 
                 arrival_location, 
-                trip_date, 
-                seats_needed 
+                date, 
+                seats 
             });
     
             // Проверка обязательных параметров
-            if (!departure_location || !arrival_location || !trip_date || !seats_needed) {
+            if (!departure_location || !arrival_location || !date || !seats) {
                 throw new Error('Необходимо указать все параметры поиска');
             }
     
@@ -165,12 +182,13 @@ class TripController {
                 [
                     departure_location,
                     arrival_location,
-                    trip_date,
-                    parseInt(seats_needed) // Преобразуем в число
+                    date,
+                    parseInt(seats) // Преобразуем в число
                 ]
             );
     
             console.log("Найдено поездок:", rows.length);
+            console.log(rows)
             return res.json(rows);
         } catch (error) {
             console.error('Ошибка:', error);

@@ -13,5 +13,8 @@ router.get('/get_byFormId',userController.get_byFormId)
 router.get('/getUser',authMiddleware,userController.getUser)
 router.get('/license_profile',authMiddleware,userController.getUser_license_profile)
 router.post('/update-profile', authMiddleware, userController.updateProfile);
+router.put('/create-img', authMiddleware, userController.create_img);
+router.get('/get-img', authMiddleware, userController.get_img);
+router.delete('/delete-img', authMiddleware, userController.delete_img);
 
 module.exports = router
