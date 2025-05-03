@@ -66,6 +66,74 @@ class UserController {
         }
     }
 
+
+    async get_all(req, res, next) {
+        console.log("passInfo1")
+        try {
+            // Деструктурируем параметры из запроса
+            const { trip_id } = req.query;
+            console.log("passInfo2")
+            // Проверяем, что обязательный параметр передан
+            if (!trip_id) {
+                return next(ApiError.badRequest('Не указан ID поездки (trip_id)'));
+            }
+            console.log("passInfo3")
+            // Основной запрос для получения информации о пассажирах
+            const { rows: passengers } = await pool.query(
+                `SELECT 
+                    u.id,
+                    u.img,
+                    u.birthday,
+                    f.surname,
+                    f.name,
+                    f.department,
+                    f.position,
+                    u.gender,
+                    u.passenger_rating,
+                    b.seats_booked
+                 FROM users u
+                 JOIN forms f ON f.id = u.form_id
+                 JOIN bookings b ON b.passenger_id = u.id
+                 JOIN trips t ON t.id = b.trip_id
+                 WHERE t.id = $1`,
+                [trip_id]
+            );
+            console.log("passInfo4")
+            // Проверяем, найдены ли пассажиры
+            if (passengers.length === 0) {
+                return res.json({ 
+                    success: false, 
+                    message: 'Для данной поездки пассажиры не найдены' 
+                });
+            }
+    
+            // Форматируем данные для ответа
+            const result = passengers.map(passenger => ({
+                id: passenger.id,
+                surname: passenger.surname,
+                name: passenger.name,
+                department: passenger.department,
+                position: passenger.position,
+                gender: passenger.gender,
+                passenger_rating: passenger.passenger_rating,
+                seats_booked: passenger.seats_booked,
+                birthday: passenger.birthday,
+                avatarUrl: passenger.img 
+                    ? `http://localhost:5000/static/${passenger.img}`
+                    : '/default-avatar.jpg'
+            }));
+    
+            return res.json({
+                success: true,
+                passengers: result
+            });
+    
+        } catch (error) {
+            console.error('Ошибка в get_all:', error);
+            next(ApiError.internal('Ошибка сервера при получении данных о пассажирах'));
+        }
+    }
+
     async delete_img(req, res, next) {
         try {
             const userId = req.user.id;
@@ -160,6 +228,7 @@ class UserController {
             next(ApiError.internal('Ошибка при получении данных: ' + error.message));
         }
     }
+
 
     // Регистрация
     async registration(req, res, next) {
@@ -329,6 +398,16 @@ class UserController {
             );
 
             return res.json({ message: 'Лицензия успешно обновлена' });
+        } catch (error) {
+            return next(ApiError.internal('Ошибка сервера: ' + error.message));
+        }
+    }
+
+    async get_id_for_chat(req, res, next) {
+        try {
+            const user_id  =  req.user.id;
+
+            return res.json({ user_id });
         } catch (error) {
             return next(ApiError.internal('Ошибка сервера: ' + error.message));
         }

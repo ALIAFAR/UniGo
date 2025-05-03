@@ -155,15 +155,15 @@ class TripController {
     
 
     async search_result(req, res, next) {
-        console.log("заработало")
+        console.log("Поиск поездок...");
         try {
             const {
                 departure_location,
                 arrival_location,
                 date,
                 seats
-            } = req.query; // Изменили с req.body на req.query
-            
+            } = req.query;
+    
             console.log("Параметры запроса:", { 
                 departure_location, 
                 arrival_location, 
@@ -176,6 +176,11 @@ class TripController {
                 throw new Error('Необходимо указать все параметры поиска');
             }
     
+            const seatsNumber = parseInt(seats);
+            if (isNaN(seatsNumber)) {
+                throw new Error('Количество мест должно быть числом');
+            }
+    
             // Вызов функции search_active_trips_partial
             const { rows } = await pool.query(
                 `SELECT * FROM search_active_trips_partial($1::VARCHAR, $2::VARCHAR, $3::DATE, $4::SMALLINT)`,
@@ -183,18 +188,44 @@ class TripController {
                     departure_location,
                     arrival_location,
                     date,
-                    parseInt(seats) // Преобразуем в число
+                    seatsNumber
                 ]
             );
     
-            console.log("Найдено поездок:", rows.length);
-            console.log(rows)
-            return res.json(rows);
+            // Форматируем данные для ответа аналогично get_all
+            const result = rows.map(trip => ({
+                name: trip.driver_name,
+                surname: trip.driver_surname,
+                rating: trip.driver_rating,
+                license_issue_date: trip.license_issue_date,
+                avatarUrl: trip.img 
+                    ? `http://localhost:5000/static/${trip.img}`
+                    : '/default-avatar.jpg',
+                brand: trip.car_brand,
+                mark: trip.car_mark,
+                departure_location: trip.departure_location,
+                arrival_location: trip.arrival_location,
+                stops: trip.stops ? trip.stops.split(', ') : [],
+                departure_time: trip.departure_time,
+                arrival_time: trip.arrival_time,
+                id: trip.trip_id,
+                available_seats: trip.available_seats,
+                total_seats: trip.total_seats,
+                cost: trip.cost,
+                instant_booking: trip.instant_booking
+            }));
+    
+            console.log("Найдено поездок:", result.length);
+            return res.json({
+                success: true,
+                trips: result
+            });
+    
         } catch (error) {
             console.error('Ошибка:', error);
             next(ApiError.internal('Ошибка при поиске поездок: ' + error.message));
         }
-    }   
+    }  
 
 }
 

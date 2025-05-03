@@ -1,4 +1,83 @@
 require('dotenv').config();
+const express = require('express');
+const { createServer } = require('http');
+const setupWebSocket = require('./websocket'); // Импортируем нашу WebSocket-логику
+const pool = require('./db_pg');
+const cors = require('cors');
+const fileUpload = require('express-fileupload');
+const router = require('./routes/index');
+const errorHandler = require('./middleware/ErrorHandlingMiddleware');
+const path = require('path');
+
+const PORT = process.env.PORT || 5000;
+
+// Создаем Express приложение
+const app = express();
+
+// Создаем HTTP-сервер на основе Express
+const server = createServer(app);
+
+// Middleware
+app.use(fileUpload({}));
+app.use(cors({
+    origin: 'http://localhost:8080',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+app.use(express.json());
+app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/api', router);
+app.use(errorHandler);
+
+// Инициализация WebSocket сервера
+setupWebSocket(server);
+
+// Проверка подключения к БД
+const testDBConnection = async () => {
+    try {
+        const res = await pool.query('SELECT NOW()');
+        console.log('Подключение к базе данных успешно:', res.rows[0]);
+    } catch (err) {
+        console.error('Ошибка подключения к базе данных:', err);
+        process.exit(1);
+    }
+};
+
+// Запуск сервера
+const start = async () => {
+    try {
+        await testDBConnection();
+        server.listen(PORT, () => {
+            console.log(`HTTP и WebSocket сервер запущен на порту ${PORT}`);
+            console.log(`WebSocket доступен по ws://localhost:${PORT}`);
+        });
+    } catch (e) {
+        console.error('Ошибка запуска сервера:', e);
+        process.exit(1);
+    }
+};
+
+// Запуск фоновых задач (если есть)
+const startTripStatusJob = require('./jobs/tripStatusJob');
+startTripStatusJob();
+
+start();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*require('dotenv').config();
 const express = require('express'); // импортирует модуль express
 const pool = require('./db_pg');
 const cors = require('cors'); // корс для запросов с браузера
@@ -50,6 +129,11 @@ const start = async () => {
     }
 };
 
+const startTripStatusJob = require('./jobs/tripStatusJob');
+startTripStatusJob();
+
+start();
+
 //const path = require('path');
 /*
 // Раздача статических файлов
@@ -60,8 +144,3 @@ app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../client/UniGo', 'index.html'));
 });
 */
-
-const startTripStatusJob = require('./jobs/tripStatusJob');
-startTripStatusJob();
-
-start();
