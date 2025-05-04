@@ -198,8 +198,8 @@ class TripController {
                 surname: trip.driver_surname,
                 rating: trip.driver_rating,
                 license_issue_date: trip.license_issue_date,
-                avatarUrl: trip.img 
-                    ? `http://localhost:5000/static/${trip.img}`
+                avatarUrl: trip.avatarurl
+                    ? `http://localhost:5000/static/${trip.avatarurl}`
                     : '/default-avatar.jpg',
                 brand: trip.car_brand,
                 mark: trip.car_mark,
@@ -212,7 +212,12 @@ class TripController {
                 available_seats: trip.available_seats,
                 total_seats: trip.total_seats,
                 cost: trip.cost,
-                instant_booking: trip.instant_booking
+                instant_booking: trip.instant_booking,
+                driver_id:trip.driver_id,
+                pets:trip.pets,
+                luggage:trip.luggage,
+                child_seat:trip.child_seat,
+                big_size_luggage:trip.big_size_luggage
             }));
     
             console.log("Найдено поездок:", result.length);
