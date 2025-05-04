@@ -29,10 +29,10 @@ app.use(express.json());
 app.use('/static', express.static(path.join(__dirname, 'static')));
 app.use('/api', router);
 app.use(errorHandler);
-
+console.log('111111');
 // Инициализация WebSocket сервера
 setupWebSocket(server);
-
+console.log('222222');
 // Проверка подключения к БД
 const testDBConnection = async () => {
     try {
