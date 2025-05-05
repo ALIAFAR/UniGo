@@ -442,10 +442,6 @@ class UserController {
             next(ApiError.internal('Ошибка при получении пользователя по ID: ' + error.message));
         }
     }
-}
-
-class UserController {
-    // ... остальные методы ...
 
     async get_driver_profile(req, res, next) {
         try {
