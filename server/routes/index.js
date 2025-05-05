@@ -8,6 +8,7 @@ const stopRouter=require('./stopRouter')
 const bookingRouter=require('./bookingRouter')
 const ratingRouter=require('./ratingRouter')
 const chatRouter=require('./chatRouter')
+const pool = require('../db_pg'); // Подключаем модуль для работы с БД
 
 router.use('/user',userRouter)
 router.use('/car',carRouter)
