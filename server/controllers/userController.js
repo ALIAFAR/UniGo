@@ -444,8 +444,10 @@ class UserController {
     }
 
     async get_driver_profile(req, res, next) {
+        console.log("get_driver_profile1")
         try {
             const driverId = req.params.id;
+        console.log("get_driver_profile2")
             
             const result = await pool.query(
                 'SELECT * FROM driver_profile_information($1)',
@@ -462,7 +464,8 @@ class UserController {
             driver.avatarurl = driver.avatarurl 
                 ? `${req.protocol}://${req.get('host')}/static/${driver.avatarurl}`
                 : `${req.protocol}://${req.get('host')}/static/default-avatar.jpg`;
-    
+        console.log("get_driver_profile3")
+            
             res.json({
                 success: true,
                 driver  // Ключ изменен с 'profile' на 'driver' для соответствия фронтенду
