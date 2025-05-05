@@ -18,4 +18,28 @@ router.use('/chat',chatRouter)
 router.use('/booking',bookingRouter)
 router.use('/rating',ratingRouter)
 
+// Роут для ручного обновления статусов
+router.get('/update-trips-status', async (req, res) => {
+    try {
+        const result = await pool.query(`
+        UPDATE trips 
+        SET trip_status = 'last'
+        WHERE trip_status = 'active' 
+        AND arrival_time <= NOW()
+        `);
+        console.log(`Обновлено поездок: ${result.rowCount}`);
+        res.json({ 
+        success: true, 
+        updated: result.rowCount,
+        message: 'Статусы поездок обновлены'
+        });
+    } catch (err) {
+        console.error('Ошибка при обновлении:', err);
+        res.status(500).json({ 
+        success: false,
+        error: err.message 
+        });
+    }
+});
+
 module.exports = router
