@@ -124,7 +124,6 @@ class UserController {
             }));
     
             return res.json({
-                success: true,
                 passengers: result
             });
     
