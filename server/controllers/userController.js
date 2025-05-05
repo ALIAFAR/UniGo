@@ -58,7 +58,7 @@ class UserController {
     
             return res.json({
                 success: true,
-                avatarUrl: `https://unigo.onrender.com/static/${user.img}`
+                avatarUrl: `http://localhost:5000/static/${user.img}`
             });
         } catch (error) {
             console.error(error);
@@ -119,11 +119,12 @@ class UserController {
                 seats_booked: passenger.seats_booked,
                 birthday: passenger.birthday,
                 avatarUrl: passenger.img 
-                    ? `https://unigo.onrender.com/static/${passenger.img}`
+                    ? `http://localhost:5000/static/${passenger.img}`
                     : '/default-avatar.jpg'
             }));
     
             return res.json({
+                success: true,
                 passengers: result
             });
     
