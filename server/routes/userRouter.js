@@ -18,5 +18,6 @@ router.get('/get-img', authMiddleware, userController.get_img);
 router.delete('/delete-img', authMiddleware, userController.delete_img);
 router.get('/get-id', authMiddleware, userController.get_id_for_chat);
 router.get('/get-all', authMiddleware,userController.get_all)
+router.get('/driver/:id', authMiddleware, userController.get_driver_profile);
 
 module.exports = router

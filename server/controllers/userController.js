@@ -444,4 +444,39 @@ class UserController {
     }
 }
 
+class UserController {
+    // ... остальные методы ...
+
+    async get_driver_profile(req, res, next) {
+        try {
+            const driverId = req.params.id;
+            
+            const result = await pool.query(
+                'SELECT * FROM driver_profile_information($1)',
+                [driverId]
+            );
+    
+            if (result.rows.length === 0) {
+                return next(ApiError.notFound('Профиль водителя не найден'));
+            }
+    
+            const driver = result.rows[0];
+            
+            // Форматируем URL аватара
+            driver.avatarurl = driver.avatarurl 
+                ? `${req.protocol}://${req.get('host')}/static/${driver.avatarurl}`
+                : `${req.protocol}://${req.get('host')}/static/default-avatar.jpg`;
+    
+            res.json({
+                success: true,
+                driver  // Ключ изменен с 'profile' на 'driver' для соответствия фронтенду
+            });
+    
+        } catch (error) {
+            console.error('Ошибка при получении профиля:', error);
+            next(ApiError.internal('Ошибка сервера при получении профиля'));
+        }
+    }
+}
+
 module.exports = new UserController();
