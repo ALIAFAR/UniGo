@@ -43,4 +43,25 @@ router.get('/update-trips-status', async (req, res) => {
     }
 });
 
+router.post('/update-forms', async (req, res) => {
+    try {
+        await pool.query(`
+        INSERT INTO public.forms (surname, name, middlename, password, department, "position", status)
+VALUES
+    -- Девушки
+    ('Иванова', 'Анна', 'Сергеевна', 'AnNVa12!@', 'IT-институт', 'Студент', true),
+    ('Петрова', 'Екатерина', 'Алексеевна', 'Kat#V2023', 'ФТТ', 'Студент', false),
+    
+    -- Парни
+    ('Смирнов', 'Дмитрий', 'Игоревич', 'DimVa88$%', 'ГНФ', 'Студент', true),
+    ('Кузнецов', 'Александр', 'Владимирович', 'AlexV*1234', 'ТФ', 'Студент', true),
+    ('Попов', 'Михаил', 'Олегович', 'MishVa5^&', 'Аси', 'Студент', false);
+
+        `);
+        console.log(`Обновление форм: ${result.rowCount}`);
+    } catch (err) {
+        console.error('Ошибка при обновлении:', err);
+    }
+});
+
 module.exports = router
