@@ -88,8 +88,29 @@ class BookingController{
         }
     }
     
-    async getOne(req,res){
-
+    async cancell_book(req, res, next) {
+        try {
+            const bookingId = req.params.id;
+    
+            const { rowCount } = await pool.query(
+                `UPDATE bookings
+                 SET reservation_status = 'отменен'
+                 WHERE id = $1`,
+                [bookingId]
+            );
+    
+            if (rowCount === 0) {
+                return next(ApiError.notFound('Бронирование не найдено'));
+            }
+    
+            return res.json({
+                success: true,
+                message: 'Бронирование успешно отменено'
+            });
+        } catch (error) {
+            console.error(error);
+            return next(ApiError.internal('Ошибка при отмене бронирования'));
+        }
     }
 }
 
