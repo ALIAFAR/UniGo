@@ -67,8 +67,25 @@ class BookingController{
         }
     }
 
-    async getAll(req,res){
-
+    async get_booked_trips(req, res, next) {
+        try {
+            const userId = req.user.id; // получаем ID пользователя из авторизации
+        
+            // Выполняем запрос к функции в PostgreSQL
+            const { rows } = await pool.query(
+                'SELECT * FROM get_booked_trips($1)',
+                [userId]
+            );
+        
+            // Возвращаем данные в нужном формате
+            return res.json({
+                success: true,
+                bookedTrips: rows // данные должны быть в поле bookedTrips
+            });
+        } catch (error) {
+            console.error(error);
+            return next(ApiError.internal('Ошибка при получении забронированных поездок'));
+        }
     }
     
     async getOne(req,res){
