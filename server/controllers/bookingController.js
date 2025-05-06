@@ -91,14 +91,15 @@ class BookingController{
     async cancell_book(req, res, next) {
         try {
             const bookingId = req.params.id;
-    
+            console.log("cancell_book1")
             const { rowCount } = await pool.query(
                 `UPDATE bookings
                  SET reservation_status = 'отменен'
                  WHERE id = $1`,
                 [bookingId]
             );
-    
+            console.log("cancell_book1")
+            
             if (rowCount === 0) {
                 return next(ApiError.notFound('Бронирование не найдено'));
             }
