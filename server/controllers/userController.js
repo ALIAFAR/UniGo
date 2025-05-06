@@ -95,7 +95,8 @@ class UserController {
                  JOIN forms f ON f.id = u.form_id
                  JOIN bookings b ON b.passenger_id = u.id
                  JOIN trips t ON t.id = b.trip_id
-                 WHERE t.id = $1`,
+                 WHERE t.id = $1
+                 AND b.reservation_status='активен'`,
                 [trip_id]
             );
             console.log("passInfo4")
