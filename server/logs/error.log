@@ -9,3 +9,9 @@
 535 5.7.8  https://support.google.com/mail/?p=BadCredentials a640c23a62f3a-ad2197463d7sm451450366b.120 - gsmtp
 2025-05-11T12:23:05.519Z [error]: Error in password reset request: Invalid login: 534-5.7.9 Application-specific password required. For more information, go to
 534 5.7.9  https://support.google.com/mail/?p=InvalidSecondFactor a640c23a62f3a-ad220ff9389sm410323866b.89 - gsmtp
+2025-05-17T14:32:04.851Z [error]: Error in password reset request: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 2adb3069b0e04-550e702c186sm934949e87.174 - gsmtp
+2025-05-17T14:33:31.526Z [error]: Error in password reset request: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 38308e7fff4ca-328083dd05esm9181351fa.0 - gsmtp
+2025-05-17T14:35:00.014Z [error]: Error in password reset request: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 38308e7fff4ca-328084ca1f2sm8921241fa.29 - gsmtp

@@ -8,6 +8,7 @@ const stopRouter=require('./stopRouter')
 const bookingRouter=require('./bookingRouter')
 const ratingRouter=require('./ratingRouter')
 const chatRouter=require('./chatRouter')
+const authRouter=require('./authRoutes')
 const pool = require('../db_pg'); // Подключаем модуль для работы с БД
 
 router.use('/user',userRouter)
@@ -18,6 +19,7 @@ router.use('/stop',stopRouter)
 router.use('/chat',chatRouter)
 router.use('/booking',bookingRouter)
 router.use('/rating',ratingRouter)
+router.use('/auth',authRouter)
 
 // Роут для ручного обновления статусов
 router.get('/update-trips-status', async (req, res) => {

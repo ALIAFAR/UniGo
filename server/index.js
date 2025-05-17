@@ -20,8 +20,8 @@ const server = createServer(app);
 // Middleware
 app.use(fileUpload({}));
 app.use(cors({
-    //origin: ['http://localhost:8080', 'https://unigo-project.vercel.app'],
-    origin: ['https://unigo-project.vercel.app'],
+    origin: ['http://localhost:8080', 'https://unigo-project.vercel.app'],
+    //origin: ['https://unigo-project.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
