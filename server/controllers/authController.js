@@ -24,6 +24,7 @@ const generateResetToken = () => {
 
 // Отправка email
 const sendResetEmail = async (email, token) => {
+    console.log("reset1")
     const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,
         auth: {
@@ -48,6 +49,7 @@ const sendResetEmail = async (email, token) => {
 
 // Запрос на сброс пароля
 exports.requestPasswordReset = async (req, res) => {
+    console.log("reset2")
     try {
         const { email } = req.body;
 
@@ -85,6 +87,7 @@ exports.requestPasswordReset = async (req, res) => {
 
 // Проверка токена
 exports.validateResetToken = async (req, res) => {
+    console.log("reset3")
     try {
         const { token } = req.params;
 
@@ -106,6 +109,7 @@ exports.validateResetToken = async (req, res) => {
 
 // Установка нового пароля
 exports.resetPassword = async (req, res) => {
+    console.log("reset4")
     try {
         const { token, newPassword } = req.body;
 
