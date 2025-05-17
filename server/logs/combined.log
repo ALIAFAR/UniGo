@@ -1,0 +1,13 @@
+2025-05-11T10:31:12.146Z [error]: Error in password reset request: Cannot read properties of undefined (reading 'query')
+2025-05-11T10:33:57.514Z [error]: Error in password reset request: Cannot read properties of undefined (reading 'query')
+2025-05-11T10:34:49.592Z [error]: Error in password reset request: Cannot read properties of undefined (reading 'query')
+2025-05-11T10:41:07.609Z [error]: Error in password reset request: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials a640c23a62f3a-ad24085b44fsm190642766b.149 - gsmtp
+2025-05-11T11:14:29.882Z [error]: Error in password reset request: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 4fb4d7f45d1cf-5fc9d700e92sm4119667a12.55 - gsmtp
+2025-05-11T11:14:52.202Z [error]: Error in password reset request: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials a640c23a62f3a-ad2197463d7sm451450366b.120 - gsmtp
+2025-05-11T12:23:05.519Z [error]: Error in password reset request: Invalid login: 534-5.7.9 Application-specific password required. For more information, go to
+534 5.7.9  https://support.google.com/mail/?p=InvalidSecondFactor a640c23a62f3a-ad220ff9389sm410323866b.89 - gsmtp
+2025-05-11T12:23:55.440Z [info]: Password reset token generated for user: 5
+2025-05-11T13:04:03.059Z [info]: Password successfully reset for user: 5
