@@ -71,6 +71,7 @@ class BookingController{
         console.log("пиздец с бронью")
         try {
             const userId = req.user.id; // получаем ID пользователя из авторизации
+            console.log("userId: ",userId)
         
             // Выполняем запрос к функции в PostgreSQL
             const { rows } = await pool.query(
