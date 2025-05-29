@@ -356,18 +356,21 @@ class UserController {
     }
     
 
-    // Авторизация
     async login(req, res, next) {
         try {
             const { login, password } = req.body;
-            const token=-1
-            if (login==process.env.operator_login&&password==process.env.operator_password){
-
-                return res.json({ token });
+            
+            // Проверка на оператора
+            if (login === process.env.operator_login && password === process.env.operator_password) {
+                const token = generateJwt(-1, process.env.operator_login, 'operator');
+                return res.json({ 
+                    token,
+                    role: 'operator' // Добавляем роль в ответ
+                });
             }
 
-            if(!login||!password){
-                return next(ApiError.badRequest('ПУстые ячейки.'));
+            if (!login || !password) {
+                return next(ApiError.badRequest('Пустые ячейки.'));
             }
 
             const { rows } = await pool.query(
@@ -385,8 +388,11 @@ class UserController {
                 return next(ApiError.internal('Неверный пароль.'));
             }
 
-            token = generateJwt(user.id, user.email, user.role);
-            return res.json({ token });
+            const token = generateJwt(user.id, user.email, user.role);
+            return res.json({ 
+                token,
+                role: user.role // Добавляем роль в ответ
+            });
         } catch (error) {
             return next(ApiError.internal('Ошибка сервера: ' + error.message));
         }
