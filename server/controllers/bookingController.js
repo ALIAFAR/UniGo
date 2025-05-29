@@ -68,6 +68,7 @@ class BookingController{
     }
 
     async get_booked_trips(req, res, next) {
+        console.log("пиздец с бронью")
         try {
             const userId = req.user.id; // получаем ID пользователя из авторизации
         
