@@ -1,7 +1,7 @@
 const ApiError = require('../error/ApiError');
 const pool = require('../db_pg'); // Подключение к базе через pg
 
-class BookingController{
+class OperatorController{
     async create_users(req, res, next) {
         try {
             const usersData = req.body.data; // Получаем массив пользователей из тела запроса
