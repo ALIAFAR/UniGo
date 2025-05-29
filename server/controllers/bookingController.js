@@ -8,10 +8,10 @@ class BookingController{
             const {
                 trip_id,
                 chat_id,
-                booking_status = 'неоплачен', // значение по умолчанию
+                booking_status = 'unpaid', // значение по умолчанию
                 booking_date = new Date().toISOString(), // текущая дата, если не передана
                 seats_booked,
-                reservation_status = 'активен' // значение по умолчанию
+                reservation_status = 'active' // значение по умолчанию
             } = req.body;
     
             // Вставляем бронирование и возвращаем созданную запись
