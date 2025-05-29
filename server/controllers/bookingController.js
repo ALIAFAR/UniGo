@@ -77,7 +77,8 @@ class BookingController{
                 'SELECT * FROM get_booked_trips($1)',
                 [userId]
             );
-        
+            console.log("БРОООНЬ ")
+            console.log(rows)
             // Возвращаем данные в нужном формате
             return res.json({
                 success: true,
