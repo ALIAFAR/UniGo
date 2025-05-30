@@ -258,8 +258,7 @@ class OperatorController {
                 JOIN cars c ON t.car_id = c.id
                 JOIN users u ON t.driver_id = u.id
                 JOIN forms f ON u.form_id = f.id
-                JOIN trip_passengers tp ON t.id = tp.trip_id
-                WHERE tp.user_id = $1
+                WHERE t.driver_id = $1
                 GROUP BY t.id, r.id, c.id, u.id, f.id
                 ORDER BY t.departure_time DESC
                 LIMIT 10
