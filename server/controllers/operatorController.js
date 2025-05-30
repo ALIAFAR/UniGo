@@ -52,7 +52,7 @@ class OperatorController {
             
             let query = `
                 SELECT 
-                    u.id, u.login, u.email, u.phone_number, u.rating, u.driver_status as status, u.birthday as birth_date,
+                    u.id, u.login, u.email, u.phone_number, u.driver_rating as rating, u.driver_status as status, u.birthday as birth_date,
                     u.profile_status as is_blocked, u.registration_date,
                     f.surname, f.name, f.middlename, u.license_number, u.license_issue_date,
                     (
