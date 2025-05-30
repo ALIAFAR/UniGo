@@ -52,17 +52,16 @@ class OperatorController {
             
             let query = `
                 SELECT 
-                    u.id, u.login, u.email, u.phone, u.rating, u.driver_status as status,
+                    u.id, u.login, u.email, u.phone_number, u.rating, u.driver_status as status, u.birthday as birth_date
                     u.profile_status as is_blocked, u.registration_date,
-                    f.surname, f.name, f.middlename, f.birth_date, f.license_number, f.license_issue_date,
+                    f.surname, f.name, f.middlename, u.license_number, u.license_issue_date,
                     (
                         SELECT json_agg(json_build_object(
                             'id', c.id,
                             'brand', c.brand,
-                            'model', c.model,
-                            'license_plate', c.license_plate
+                            'model', c.mark
                         ))
-                        FROM cars c WHERE c.user_id = u.id AND c.car_status = true
+                        FROM cars c WHERE c.user_id = u.id
                     ) as cars
                 FROM users u
                 JOIN forms f ON u.form_id = f.id
