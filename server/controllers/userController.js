@@ -362,7 +362,7 @@ class UserController {
             
             // Проверка на оператора
             if (login === process.env.operator_login && password === process.env.operator_password) {
-                const token = generateJwt(-1, process.env.operator_login, 'operator');
+                const token = generateJwt(1, process.env.operator_login, 'operator');
                 return res.json({ 
                     token,
                     role: 'operator' // Добавляем роль в ответ
