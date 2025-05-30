@@ -219,7 +219,7 @@ class OperatorController {
                     json_build_object(
                         'id', c.id,
                         'brand', c.brand,
-                        'model', c.model
+                        'model', c.mark
                     ) as car
                 FROM trips t
                 JOIN routes r ON t.route_id = r.id
