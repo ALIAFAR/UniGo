@@ -1,7 +1,7 @@
 const Router = require('express');
 const router = new Router();
 const operatorController = require('../controllers/operatorController');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../middleware/authMiddlewere');
 const adminMiddleware = require('../middleware/adminMiddleware');
 
 // Создание пользователей из формы (только для админов)
