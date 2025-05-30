@@ -46,22 +46,49 @@ class OperatorController {
         }
     }
 
-    // Получение списка пользователей для проверки (driver_status = 1)
-    async getUsersForVerification(req, res, next) {
+    async getUsers(req, res, next) {
         try {
-            const { rows } = await pool.query(`
-                SELECT u.*, f.surname, f.name, f.middlename, f.department, f.position
+            const { status } = req.query;
+            
+            let query = `
+                SELECT 
+                    u.id, u.login, u.email, u.phone, u.rating, u.driver_status as status,
+                    u.profile_status as is_blocked, u.registration_date,
+                    f.surname, f.name, f.middlename, f.birth_date, f.license_number, f.license_issue_date,
+                    (
+                        SELECT json_agg(json_build_object(
+                            'id', c.id,
+                            'brand', c.brand,
+                            'model', c.model,
+                            'license_plate', c.license_plate
+                        ))
+                        FROM cars c WHERE c.user_id = u.id AND c.car_status = true
+                    ) as cars
                 FROM users u
                 JOIN forms f ON u.form_id = f.id
-                WHERE u.driver_status = 1
-                ORDER BY u.registration_date DESC
-            `);
-
+            `;
+            
+            const params = [];
+            
+            if (status) {
+                query += ` WHERE u.driver_status = $1`;
+                params.push(status);
+            }
+            
+            query += ` ORDER BY u.registration_date DESC`;
+            
+            const { rows } = await pool.query(query, params);
+            
             return res.json({
                 success: true,
                 users: rows.map(user => ({
                     ...user,
-                    fullName: `${user.surname} ${user.name} ${user.middlename || ''}`.trim()
+                    fullName: `${user.surname} ${user.name} ${user.middlename || ''}`.trim(),
+                    isConfirmed: user.status === 2,
+                    birthDate: user.birth_date,
+                    licenseIssueDate: user.license_issue_date,
+                    licenseNumber: user.license_number,
+                    cars: user.cars || []
                 }))
             });
 
@@ -78,12 +105,12 @@ class OperatorController {
             
             const { rowCount } = await pool.query(
                 `UPDATE users SET driver_status = 2 
-                WHERE id = $1 AND driver_status = 1 RETURNING id`,
+                WHERE id = $1 RETURNING id`,
                 [userId]
             );
 
             if (rowCount === 0) {
-                return next(ApiError.badRequest('Пользователь не найден или уже подтвержден'));
+                return next(ApiError.badRequest('Пользователь не найден'));
             }
 
             return res.json({
@@ -104,12 +131,12 @@ class OperatorController {
             
             const { rowCount } = await pool.query(
                 `UPDATE users SET driver_status = -1 
-                WHERE id = $1 AND driver_status = 1 RETURNING id`,
+                WHERE id = $1 RETURNING id`,
                 [userId]
             );
 
             if (rowCount === 0) {
-                return next(ApiError.badRequest('Пользователь не найден или уже отклонен'));
+                return next(ApiError.badRequest('Пользователь не найден'));
             }
 
             return res.json({
@@ -123,86 +150,28 @@ class OperatorController {
         }
     }
 
-    // Получение списка автомобилей для проверки (car_status = false)
-    async getCarsForVerification(req, res, next) {
+    // Удаление пользователя
+    async deleteUser(req, res, next) {
         try {
-            const { rows } = await pool.query(`
-                SELECT c.*, u.login, f.surname, f.name, f.middlename
-                FROM cars c
-                JOIN users u ON c.user_id = u.id
-                JOIN forms f ON u.form_id = f.id
-                WHERE c.car_status = false
-                ORDER BY c.created_at DESC
-            `);
-
-            return res.json({
-                success: true,
-                cars: rows
-            });
-
-        } catch (error) {
-            console.error('Ошибка при получении автомобилей:', error);
-            return next(ApiError.internal('Ошибка при получении списка автомобилей'));
-        }
-    }
-
-    // Подтверждение автомобиля (car_status = true)
-    async approveCar(req, res, next) {
-        try {
-            const { carId } = req.params;
+            const { userId } = req.params;
             
             const { rowCount } = await pool.query(
-                `UPDATE cars SET car_status = true 
-                WHERE id = $1 AND car_status = false RETURNING id`,
-                [carId]
+                `DELETE FROM users WHERE id = $1 RETURNING id`,
+                [userId]
             );
 
             if (rowCount === 0) {
-                return next(ApiError.badRequest('Автомобиль не найден или уже подтвержден'));
+                return next(ApiError.badRequest('Пользователь не найден'));
             }
 
             return res.json({
                 success: true,
-                message: 'Автомобиль успешно подтвержден'
+                message: 'Пользователь удален'
             });
 
         } catch (error) {
-            console.error('Ошибка при подтверждении автомобиля:', error);
-            return next(ApiError.internal('Ошибка при подтверждении автомобиля'));
-        }
-    }
-
-    // Получение поездок пользователя
-    async getUserTrips(req, res, next) {
-        try {
-            const { userId } = req.params;
-            
-            // Запрос для созданных поездок (как водитель)
-            const createdTrips = await pool.query(`
-                SELECT * FROM trips 
-                WHERE driver_id = $1
-                ORDER BY departure_time DESC
-                LIMIT 10
-            `, [userId]);
-
-            // Запрос для поездок пассажиром
-            const passengerTrips = await pool.query(`
-                SELECT t.* FROM trips t
-                JOIN trip_passengers tp ON t.id = tp.trip_id
-                WHERE tp.user_id = $1
-                ORDER BY t.departure_time DESC
-                LIMIT 10
-            `, [userId]);
-
-            return res.json({
-                success: true,
-                createdTrips: createdTrips.rows,
-                passengerTrips: passengerTrips.rows
-            });
-
-        } catch (error) {
-            console.error('Ошибка при получении поездок пользователя:', error);
-            return next(ApiError.internal('Ошибка при получении поездок пользователя'));
+            console.error('Ошибка при удалении пользователя:', error);
+            return next(ApiError.internal('Ошибка при удалении пользователя'));
         }
     }
 
@@ -213,12 +182,12 @@ class OperatorController {
             
             const { rowCount } = await pool.query(
                 `UPDATE users SET profile_status = false 
-                WHERE id = $1 AND profile_status = true RETURNING id`,
+                WHERE id = $1 RETURNING id`,
                 [userId]
             );
 
             if (rowCount === 0) {
-                return next(ApiError.badRequest('Пользователь не найден или уже заблокирован'));
+                return next(ApiError.badRequest('Пользователь не найден'));
             }
 
             return res.json({
@@ -232,29 +201,196 @@ class OperatorController {
         }
     }
 
-    // Разблокировка пользователя
-    async unblockUser(req, res, next) {
+    // Получение поездок пользователя
+    async getUserTrips(req, res, next) {
         try {
             const { userId } = req.params;
             
+            // Запрос для созданных поездок (как водитель)
+            const createdTripsQuery = `
+                SELECT 
+                    t.id, t.cost, t.seats, t.available_seats, 
+                    t.trip_status as status, t.departure_time, t.arrival_time,
+                    t.comment, t.instant_booking, t.luggage_allowed,
+                    r.departure_location, r.arrival_location,
+                    json_agg(json_build_object(
+                        'id', s.id,
+                        'location', s.arrival_location
+                    )) as stops,
+                    json_build_object(
+                        'id', c.id,
+                        'brand', c.brand,
+                        'model', c.model,
+                        'license_plate', c.license_plate
+                    ) as car
+                FROM trips t
+                JOIN routes r ON t.route_id = r.id
+                LEFT JOIN stops s ON s.trip_id = t.id
+                JOIN cars c ON t.car_id = c.id
+                WHERE t.driver_id = $1
+                GROUP BY t.id, r.id, c.id
+                ORDER BY t.departure_time DESC
+                LIMIT 10
+            `;
+
+            // Запрос для поездок пассажиром
+            const passengerTripsQuery = `
+                SELECT 
+                    t.id, t.cost, t.seats, t.available_seats, 
+                    t.trip_status as status, t.departure_time, t.arrival_time,
+                    t.comment, t.instant_booking, t.luggage_allowed,
+                    r.departure_location, r.arrival_location,
+                    json_agg(json_build_object(
+                        'id', s.id,
+                        'location', s.arrival_location
+                    )) as stops,
+                    json_build_object(
+                        'id', c.id,
+                        'brand', c.brand,
+                        'model', c.model,
+                        'license_plate', c.license_plate
+                    ) as car,
+                    json_build_object(
+                        'id', u.id,
+                        'name', f.name,
+                        'surname', f.surname
+                    ) as driver
+                FROM trips t
+                JOIN routes r ON t.route_id = r.id
+                LEFT JOIN stops s ON s.trip_id = t.id
+                JOIN cars c ON t.car_id = c.id
+                JOIN users u ON t.driver_id = u.id
+                JOIN forms f ON u.form_id = f.id
+                JOIN trip_passengers tp ON t.id = tp.trip_id
+                WHERE tp.user_id = $1
+                GROUP BY t.id, r.id, c.id, u.id, f.id
+                ORDER BY t.departure_time DESC
+                LIMIT 10
+            `;
+
+            const [createdTripsResult, passengerTripsResult] = await Promise.all([
+                pool.query(createdTripsQuery, [userId]),
+                pool.query(passengerTripsQuery, [userId])
+            ]);
+
+            return res.json({
+                success: true,
+                createdTrips: createdTripsResult.rows.map(trip => ({
+                    route: `${trip.departure_location} - ${trip.arrival_location}`,
+                    date: trip.departure_time,
+                    status: trip.status,
+                    car: `${trip.car.brand} ${trip.car.model} (${trip.car.license_plate})`,
+                    stops: trip.stops,
+                    seats: trip.seats,
+                    cost: trip.cost
+                })),
+                passengerTrips: passengerTripsResult.rows.map(trip => ({
+                    route: `${trip.departure_location} - ${trip.arrival_location}`,
+                    date: trip.departure_time,
+                    status: trip.status,
+                    car: `${trip.car.brand} ${trip.car.model} (${trip.car.license_plate})`,
+                    driver: `${trip.driver.surname} ${trip.driver.name}`,
+                    stops: trip.stops,
+                    seats: trip.seats,
+                    cost: trip.cost
+                }))
+            });
+
+        } catch (error) {
+            console.error('Ошибка при получении поездок пользователя:', error);
+            return next(ApiError.internal('Ошибка при получении поездок пользователя'));
+        }
+    }
+
+    // Получение списка автомобилей
+    async getCars(req, res, next) {
+        try {
+            const { status } = req.query;
+            
+            let query = `
+                SELECT 
+                    c.id, c.brand, c.model, c.license_plate, c.color, 
+                    c.year, c.car_status as is_confirmed, c.created_at,
+                    u.id as user_id, u.login, u.rating,
+                    f.surname, f.name, f.middlename
+                FROM cars c
+                JOIN users u ON c.user_id = u.id
+                JOIN forms f ON u.form_id = f.id
+            `;
+            
+            const params = [];
+            
+            if (status !== undefined) {
+                query += ` WHERE c.car_status = $1`;
+                params.push(status === 'true');
+            }
+            
+            query += ` ORDER BY c.created_at DESC`;
+            
+            const { rows } = await pool.query(query, params);
+            
+            return res.json({
+                success: true,
+                cars: rows.map(car => ({
+                    ...car,
+                    ownerName: `${car.surname} ${car.name} ${car.middlename || ''}`.trim()
+                }))
+            });
+
+        } catch (error) {
+            console.error('Ошибка при получении автомобилей:', error);
+            return next(ApiError.internal('Ошибка при получении списка автомобилей'));
+        }
+    }
+
+    // Подтверждение автомобиля
+    async approveCar(req, res, next) {
+        try {
+            const { carId } = req.params;
+            
             const { rowCount } = await pool.query(
-                `UPDATE users SET profile_status = true 
-                WHERE id = $1 AND profile_status = false RETURNING id`,
-                [userId]
+                `UPDATE cars SET car_status = true 
+                WHERE id = $1 RETURNING id`,
+                [carId]
             );
 
             if (rowCount === 0) {
-                return next(ApiError.badRequest('Пользователь не найден или уже разблокирован'));
+                return next(ApiError.badRequest('Автомобиль не найден'));
             }
 
             return res.json({
                 success: true,
-                message: 'Пользователь разблокирован'
+                message: 'Автомобиль успешно подтвержден'
             });
 
         } catch (error) {
-            console.error('Ошибка при разблокировке пользователя:', error);
-            return next(ApiError.internal('Ошибка при разблокировке пользователя'));
+            console.error('Ошибка при подтверждении автомобиля:', error);
+            return next(ApiError.internal('Ошибка при подтверждении автомобиля'));
+        }
+    }
+
+    // Отклонение автомобиля
+    async rejectCar(req, res, next) {
+        try {
+            const { carId } = req.params;
+            
+            const { rowCount } = await pool.query(
+                `DELETE FROM cars WHERE id = $1 RETURNING id`,
+                [carId]
+            );
+
+            if (rowCount === 0) {
+                return next(ApiError.badRequest('Автомобиль не найден'));
+            }
+
+            return res.json({
+                success: true,
+                message: 'Автомобиль отклонен'
+            });
+
+        } catch (error) {
+            console.error('Ошибка при отклонении автомобиля:', error);
+            return next(ApiError.internal('Ошибка при отклонении автомобиля'));
         }
     }
 }

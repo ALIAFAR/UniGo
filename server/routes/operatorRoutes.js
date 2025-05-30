@@ -11,60 +11,60 @@ router.post('/create-users',
   operatorController.create_users
 );
 
-// Получение пользователей для проверки
-router.get('/users/for-verification', 
+// Пользователи
+router.get('/users', 
   authMiddleware, 
   adminMiddleware, 
-  operatorController.getUsersForVerification
+  operatorController.getUsers
 );
 
-// Подтверждение пользователя
 router.put('/users/:userId/approve', 
   authMiddleware, 
   adminMiddleware, 
   operatorController.approveUser
 );
 
-// Отклонение пользователя
 router.put('/users/:userId/reject', 
   authMiddleware, 
   adminMiddleware, 
   operatorController.rejectUser
 );
 
-// Блокировка пользователя
+router.delete('/users/:userId', 
+  authMiddleware, 
+  adminMiddleware, 
+  operatorController.deleteUser
+);
+
 router.put('/users/:userId/block', 
   authMiddleware, 
   adminMiddleware, 
   operatorController.blockUser
 );
 
-// Разблокировка пользователя
-router.put('/users/:userId/unblock', 
+router.get('/users/:userId/trips', 
   authMiddleware, 
   adminMiddleware, 
-  operatorController.unblockUser
+  operatorController.getUserTrips
 );
 
-// Получение автомобилей для проверки
-router.get('/cars/for-verification', 
+// Автомобили
+router.get('/cars', 
   authMiddleware, 
   adminMiddleware, 
-  operatorController.getCarsForVerification
+  operatorController.getCars
 );
 
-// Подтверждение автомобиля
 router.put('/cars/:carId/approve', 
   authMiddleware, 
   adminMiddleware, 
   operatorController.approveCar
 );
 
-// Получение поездок пользователя
-router.get('/users/:userId/trips', 
+router.delete('/cars/:carId', 
   authMiddleware, 
   adminMiddleware, 
-  operatorController.getUserTrips
+  operatorController.rejectCar
 );
 
 module.exports = router;
