@@ -219,8 +219,7 @@ class OperatorController {
                     json_build_object(
                         'id', c.id,
                         'brand', c.brand,
-                        'model', c.model,
-                        'license_plate', c.license_plate
+                        'model', c.model
                     ) as car
                 FROM trips t
                 JOIN routes r ON t.route_id = r.id
@@ -246,8 +245,7 @@ class OperatorController {
                     json_build_object(
                         'id', c.id,
                         'brand', c.brand,
-                        'model', c.model,
-                        'license_plate', c.license_plate
+                        'model', c.mark
                     ) as car,
                     json_build_object(
                         'id', u.id,
@@ -308,7 +306,7 @@ class OperatorController {
             
             let query = `
                 SELECT 
-                    c.id, c.brand, c.model, c.license_plate, c.color, 
+                    c.id, c.brand, c.mark as model, c.color, 
                     c.year, c.car_status as is_confirmed, c.created_at,
                     u.id as user_id, u.login, u.rating,
                     f.surname, f.name, f.middlename
