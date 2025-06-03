@@ -13,6 +13,19 @@ class BookingController{
                 seats_booked,
                 reservation_status = 'active' // значение по умолчанию
             } = req.body;
+
+            const { row } = await pool.query(
+                `SELECT instant_booking FROM trips WHERE id = $1`,
+                [trip_id]
+            );
+
+            const instant_booking = row[0]?.instant_booking;
+
+            if (instant_booking===true) {
+                 booking_status = 'paid'
+            } else {
+                 booking_status = 'unpaid'
+            }
     
             // Вставляем бронирование и возвращаем созданную запись
             const { rows } = await pool.query(
@@ -94,22 +107,38 @@ class BookingController{
     async cancell_book(req, res, next) {
         try {
             const bookingId = req.params.id;
-            console.log("cancell_book1")
+            const { seats_booked } = req.body; // Получаем seats_booked из тела запроса
+
+            console.log(`Отмена бронирования ${bookingId}, мест: ${seats_booked}`);
+
+            // Обновляем статус бронирования
             const { rowCount } = await pool.query(
                 `UPDATE bookings
-                 SET reservation_status = 'отменен'
-                 WHERE id = $1`,
+                SET reservation_status = 'cancel'
+                WHERE id = $1`,
                 [bookingId]
             );
-            console.log("cancell_book1")
             
             if (rowCount === 0) {
                 return next(ApiError.notFound('Бронирование не найдено'));
             }
-    
+
+            // Если нужно обновить доступные места в поездке
+            if (seats_booked) {
+                await pool.query(
+                    `UPDATE trips 
+                    SET available_seats = available_seats + $1
+                    WHERE id = (
+                        SELECT trip_id FROM bookings WHERE id = $2
+                    )`,
+                    [seats_booked, bookingId]
+                );
+            }
+
             return res.json({
                 success: true,
-                message: 'Бронирование успешно отменено'
+                message: 'Бронирование успешно отменено',
+                seats_returned: seats_booked || 0
             });
         } catch (error) {
             console.error(error);
