@@ -14,18 +14,19 @@ class BookingController{
                 reservation_status = 'active' // значение по умолчанию
             } = req.body;
 
-            const { row } = await pool.query(
-                `SELECT instant_booking FROM trips WHERE id = $1`,
+            // 1. Получаем instant_booking из trips
+            const tripCheck = await pool.query(
+                `SELECT instant_booking, available_seats FROM trips WHERE id = $1`,
                 [trip_id]
             );
 
-            const instant_booking = row[0]?.instant_booking;
-
-            if (instant_booking===true) {
-                 booking_status = 'paid'
-            } else {
-                 booking_status = 'unpaid'
+            if (tripCheck.rows.length === 0) {
+                return next(ApiError.notFound('Поездка не найдена'));
             }
+
+            // 2. Определяем статус бронирования
+            const instant_booking = tripCheck.rows[0].instant_booking;
+            booking_status = instant_booking ? 'paid' : 'unpaid';
     
             // Вставляем бронирование и возвращаем созданную запись
             const { rows } = await pool.query(
