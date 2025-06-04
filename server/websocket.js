@@ -25,7 +25,7 @@ function setupWebSocket(server) {
                     
                     ws.send(JSON.stringify({
                         type: 'unread_notifications',
-                        count: parseInt(unreadRes.rows[0].count)
+                        count: parseInt(unreadRes.rows[0].count) || 0
                     }));
                     
                     return;
