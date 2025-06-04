@@ -4,9 +4,9 @@ const notificationsController = require('../controllers/notificationController')
 const authMiddleware = require('../middleware/authMiddlewere');
 
 // Уведомления
-router.get('/notifications/:userId', authMiddlewere, notificationsController.getUserNotifications);
-router.put('/notifications/:notificationId/read', authMiddlewere, notificationsController.markAsRead);
-router.put('/notifications/read-all', authMiddlewere, notificationsController.markAllAsRead);
-router.get('/notifications/unread/count', authMiddlewere, notificationsController.getUnreadCount);
+router.get('/:userId', authMiddleware, notificationsController.getUserNotifications);
+router.put('/:notificationId/read',authMiddleware, notificationsController.markAsRead);
+router.put('/read-all', authMiddleware, notificationsController.markAllAsRead);
+router.get('/unread/count',authMiddleware, notificationsController.getUnreadCount);
 
 module.exports = router;
