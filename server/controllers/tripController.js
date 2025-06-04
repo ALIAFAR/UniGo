@@ -242,6 +242,36 @@ class TripController {
         }
     }  
 
+    async checkDriverStatus(req, res, next) {
+    try {
+        const userId = req.user.id;
+        
+        // Проверяем статус водителя
+        const { rows } = await pool.query(
+            'SELECT driver_status FROM users WHERE id = $1',
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.json({ isDriver: false, message: 'Пользователь не найден' });
+        }
+
+        const isDriver = rows[0].driver_status === 2;
+        
+        return res.json({ 
+            success: true,
+            isDriver,
+            message: isDriver 
+                ? 'Пользователь является подтвержденным водителем' 
+                : 'Пользователь не является подтвержденным водителем'
+        });
+
+    } catch (error) {
+        console.error('Ошибка при проверке статуса водителя:', error);
+        return next(ApiError.internal('Ошибка при проверке статуса водителя'));
+    }
+}
+
 }
 
 module.exports = new TripController();

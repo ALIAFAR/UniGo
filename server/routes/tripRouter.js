@@ -6,6 +6,7 @@ const authMiddleware = require('../middleware/authMiddlewere'); // Провер�
 
 router.post('/trip',authMiddleware,tripController.create)//create trip
 router.get('/search',authMiddleware,tripController.get_driver_trips)//get all trip
+router.get('/check-diver',authMiddleware,tripController.checkDriverStatus)//get all trip
 router.get('/searchResult',tripController.search_result)//get all trip
 //router.get('/:id',tripController.getOne)//get all trip
 
