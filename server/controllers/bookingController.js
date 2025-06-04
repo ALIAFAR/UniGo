@@ -70,7 +70,7 @@ class BookingController{
                 trip_id: trip_id,
                 booking_id: null
             });
-            console.log(notification)
+            console.log("notification",notification)
     
             return res.json({
                 success: true,
