@@ -129,7 +129,7 @@ class OperatorController {
             const { userId } = req.params;
             
             const { rowCount } = await pool.query(
-                `UPDATE users SET driver_status = -1 
+                `UPDATE users SET driver_status = 1 
                 WHERE id = $1 RETURNING id`,
                 [userId]
             );
