@@ -38,7 +38,7 @@ class TripController {
             // Создаем копию departureTimestamp, чтобы не изменять оригинал
             const arrivalTimestamp = new Date(departureTimestamp);
 
-            // Добавляем время в пути
+            // Добавляем время в путиооорр
             arrivalTimestamp.setHours(arrivalTimestamp.getHours() + hours);
             arrivalTimestamp.setMinutes(arrivalTimestamp.getMinutes() + minutes);
             arrivalTimestamp.setSeconds(arrivalTimestamp.getSeconds() + seconds);
