@@ -224,10 +224,10 @@ class TripController {
                 luggage:trip.luggage,
                 child_seat:trip.child_seat,
                 big_size_luggage:trip.big_size_luggage,
-                comment:comment,
-                oversized_luggage_comment:oversized_luggage_comment,
-                child_seat_comment:child_seat_comment,
-                pets_comment:pets_comment
+                comment:trip.comment,
+                oversized_luggage_comment:trip.oversized_luggage_comment,
+                child_seat_comment:trip.child_seat_comment,
+                pets_comment:trip.pets_comment
             }));
     
             console.log("Найдено поездок:", result.length);
