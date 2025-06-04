@@ -5,7 +5,7 @@ class BookingController{
     async create(req, res, next) {
         try {
             const userId = req.user.id;
-            const {
+            let {
                 trip_id,
                 chat_id,
                 booking_status = 'unpaid', // значение по умолчанию
