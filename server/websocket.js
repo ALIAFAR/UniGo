@@ -15,6 +15,19 @@ function setupWebSocket(server) {
                 if (data.type === 'auth' && data.user_id) {
                     activeConnections.set(data.user_id, ws);
                     console.log(`Пользователь ${data.user_id} авторизован`);
+                    
+                    // Отправляем количество непрочитанных уведомлений при подключении
+                    const unreadRes = await pool.query(
+                        `SELECT COUNT(*) FROM notifications 
+                         WHERE user_id = $1 AND is_read = FALSE`,
+                        [data.user_id]
+                    );
+                    
+                    ws.send(JSON.stringify({
+                        type: 'unread_notifications',
+                        count: parseInt(unreadRes.rows[0].count)
+                    }));
+                    
                     return;
                 }
 
@@ -60,6 +73,29 @@ function setupWebSocket(server) {
                         sent_at: res.rows[0].sent_at
                     }));
                 }
+
+                if (data.type === 'mark_notification_read' && data.notification_id) {
+                    await pool.query(
+                        `UPDATE notifications SET is_read = TRUE 
+                         WHERE id = $1 AND user_id = $2`,
+                        [data.notification_id, data.user_id]
+                    );
+                    
+                    // Отправляем обновленное количество непрочитанных
+                    const unreadRes = await pool.query(
+                        `SELECT COUNT(*) FROM notifications 
+                         WHERE user_id = $1 AND is_read = FALSE`,
+                        [data.user_id]
+                    );
+                    
+                    if (activeConnections.has(data.user_id)) {
+                        activeConnections.get(data.user_id).send(JSON.stringify({
+                            type: 'unread_notifications',
+                            count: parseInt(unreadRes.rows[0].count)
+                        }));
+                    }
+                }
+
             } catch (err) {
                 console.error('WebSocket ошибка:', err);
                 ws.send(JSON.stringify({
@@ -79,6 +115,58 @@ function setupWebSocket(server) {
             }
         });
     });
+
+    // Функция для отправки уведомлений
+    wss.sendNotification = async (userId, notificationData) => {
+        try {
+            // Сохраняем уведомление в БД
+            const res = await pool.query(
+                `INSERT INTO notifications (user_id, type, message, trip_id, booking_id)
+                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+                [
+                    userId,
+                    notificationData.type,
+                    notificationData.message,
+                    notificationData.trip_id || null,
+                    notificationData.booking_id || null
+                ]
+            );
+
+            // Отправляем уведомление через WebSocket, если пользователь онлайн
+            if (activeConnections.has(userId)) {
+                const notification = res.rows[0];
+                activeConnections.get(userId).send(JSON.stringify({
+                    type: 'new_notification',
+                    notification: {
+                        id: notification.id,
+                        type: notification.type,
+                        message: notification.message,
+                        created_at: notification.created_at,
+                        is_read: notification.is_read,
+                        trip_id: notification.trip_id,
+                        booking_id: notification.booking_id
+                    }
+                }));
+
+                // Обновляем счетчик непрочитанных
+                const unreadRes = await pool.query(
+                    `SELECT COUNT(*) FROM notifications 
+                     WHERE user_id = $1 AND is_read = FALSE`,
+                    [userId]
+                );
+                
+                activeConnections.get(userId).send(JSON.stringify({
+                    type: 'unread_notifications',
+                    count: parseInt(unreadRes.rows[0].count)
+                }));
+            }
+            
+            return res.rows[0];
+        } catch (err) {
+            console.error('Ошибка при отправке уведомления:', err);
+            throw err;
+        }
+    };
 
     return wss;
 }
