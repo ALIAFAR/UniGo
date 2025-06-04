@@ -107,32 +107,46 @@ class BookingController{
     
     async cancell_book(req, res, next) {
         try {
+            const userId = req.user.id;
             const bookingId = req.params.id;
-            const { seats_booked } = req.body; // Получаем seats_booked из тела запроса
+            const { seats_booked } = req.body;
 
             console.log(`Отмена бронирования ${bookingId}, мест: ${seats_booked}`);
 
-            // Обновляем статус бронирования
+            // 1. Сначала получаем данные бронирования
+            const bookingResult = await pool.query(
+                `SELECT trip_id FROM bookings WHERE id = $1`,
+                [bookingId]
+            );
+
+            if (bookingResult.rows.length === 0) {
+                return next(ApiError.notFound('Бронирование не найдено'));
+            }
+
+            const tripId = bookingResult.rows[0].trip_id;
+
+            // 2. Удаляем связанный чат
+            await pool.query(
+                `DELETE FROM chats 
+                WHERE passenger_id = $1 AND trip_id = $2`,
+                [userId, tripId]
+            );
+
+            // 3. Обновляем статус бронирования
             const { rowCount } = await pool.query(
                 `UPDATE bookings
                 SET reservation_status = 'cancel'
                 WHERE id = $1`,
                 [bookingId]
             );
-            
-            if (rowCount === 0) {
-                return next(ApiError.notFound('Бронирование не найдено'));
-            }
 
-            // Если нужно обновить доступные места в поездке
+            // 4. Возвращаем места в поездку (если указано seats_booked)
             if (seats_booked) {
                 await pool.query(
                     `UPDATE trips 
                     SET available_seats = available_seats + $1
-                    WHERE id = (
-                        SELECT trip_id FROM bookings WHERE id = $2
-                    )`,
-                    [seats_booked, bookingId]
+                    WHERE id = $2`,
+                    [seats_booked, tripId]
                 );
             }
 
@@ -141,6 +155,7 @@ class BookingController{
                 message: 'Бронирование успешно отменено',
                 seats_returned: seats_booked || 0
             });
+
         } catch (error) {
             console.error(error);
             return next(ApiError.internal('Ошибка при отмене бронирования'));
