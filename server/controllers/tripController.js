@@ -50,6 +50,20 @@ class TripController {
             console.log(arrivalDateString); // Например: "2023-12-31T15:19:40Z"
     
             console.log(departureTimestamp, arrivalTimestamp);
+
+            try {
+                const statusCheck = await pool.query(
+                    'SELECT driver_status FROM users WHERE id = $1',
+                    [userId]
+                );
+                
+                if (statusCheck.rows.length === 0 || statusCheck.rows[0].driver_status !== 2) {
+                    return next(ApiError.forbidden('Только подтвержденные водители могут создавать поездки'));
+                }
+            } catch (error) {
+                console.error('Ошибка при проверке статуса водителя:', error);
+                return next(ApiError.internal('Ошибка при проверке прав доступа'));
+            }
     
             try {
                 // Вызов функции create_trip
