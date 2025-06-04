@@ -1,4 +1,4 @@
-const pool = require('./db_pg');
+const pool = require('../db_pg');
 
 const notificationController = {
     // Получить все уведомления пользователя
