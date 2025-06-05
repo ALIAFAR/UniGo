@@ -64,7 +64,7 @@ class BookingController{
                 [trip_id]
             );
 
-            const notification = await wss.sendNotification(userId, {
+            const notification = await  wss.sendNotification(userId, {
                 type: 'booking',
                 message: 'Ваша поездка была забронирована',
                 trip_id: trip_id,
