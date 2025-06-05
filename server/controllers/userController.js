@@ -115,7 +115,7 @@ class UserController {
                 passenger_rating: passenger.passenger_rating,
                 seats_booked: passenger.seats_booked,
                 birthday: passenger.birthday,
-                avatarUrl: res.send(passenger.img)
+                avatarUrl: passenger.img
                     ? `https://unigo.onrender.com/static/${passenger.img}`
                     : '/default-avatar.jpg'
             }));
