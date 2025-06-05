@@ -64,6 +64,33 @@ class UserController {
         }
     }
 
+    async get_img_by_id(req, res, next) {
+    console.log("Получение фото пользователя по ID");
+    try {
+        const userId = req.params.id;
+        console.log(`Запрос аватара для пользователя ID: ${userId}`);
+
+        const result = await pool.query('SELECT img FROM users WHERE id = $1', [userId]);
+        const user = result.rows[0];
+
+        if (!user || !user.img) {
+            console.log(`Аватар не найден для пользователя ID: ${userId}`);
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Аватар не найден' 
+            });
+        }
+
+        // Определяем Content-Type (можно добавить поле с типом изображения в БД)
+        res.set('Content-Type', 'image/jpeg');
+        console.log(`Успешно отправлен аватар пользователя ID: ${userId}`);
+        return res.send(user.img);
+    } catch (error) {
+        console.error('Ошибка при получении фото:', error);
+        return next(ApiError.internal('Ошибка сервера при получении фото'));
+    }
+}
+
 
     async get_all(req, res, next) {
         console.log("passInfo1")
