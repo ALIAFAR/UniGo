@@ -32,7 +32,7 @@ app.use(errorHandler);
 console.log('111111');
 // Инициализация WebSocket сервера
 
-setupWebSocket(server);
+//setupWebSocket(server);
 
 // Создаем экземпляр WebSocket сервера
 const webSocketServer = new setupWebSocket(server);
