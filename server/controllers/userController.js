@@ -48,15 +48,14 @@ class UserController {
             const userId = req.user.id;
             const result = await pool.query('SELECT img FROM public.users WHERE id = $1', [userId]);
             const user = result.rows[0];
-    
+
             if (!user || !user.img) {
                 return res.json({ success: false, message: 'Аватар не найден' });
             }
-    
-            return res.json({
-                success: true,
-                avatarUrl: user.img
-            });
+
+            // Определяем Content-Type (можно хранить тип изображения в отдельном поле)
+            res.set('Content-Type', 'image/jpeg'); // или 'image/png' в зависимости от типа
+            return res.send(user.img); // Отправляем бинарные данные напрямую
         } catch (error) {
             console.error(error);
             return next(ApiError.internal('Ошибка при получении фото'));
