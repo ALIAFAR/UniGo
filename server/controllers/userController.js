@@ -44,7 +44,9 @@ class UserController {
     }
 
     async get_img(req, res, next) {
+        console.log("Проверка получения фото1")
         try {
+            console.log("Проверка получения фото2")
             const userId = req.user.id;
             const result = await pool.query('SELECT img FROM public.users WHERE id = $1', [userId]);
             const user = result.rows[0];
