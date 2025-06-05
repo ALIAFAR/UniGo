@@ -64,12 +64,17 @@ class BookingController{
                 [trip_id]
             );
 
-            const notification = await wss.sendNotification(userId, {
+             // Получаем экземпляр WebSocket сервера из app
+            const webSocketServer = req.app.get('websocket');
+            
+            // Отправляем уведомление
+            const notification = await webSocketServer.sendNotification(userId, {
                 type: 'booking',
                 message: 'Ваша поездка была забронирована',
                 trip_id: trip_id,
-                booking_id: rows[0].id // используем ID созданного бронирования
+                booking_id: rows[0].id
             });
+            
             console.log("notification",notification)
     
             return res.json({

@@ -31,7 +31,16 @@ app.use('/api', router);
 app.use(errorHandler);
 console.log('111111');
 // Инициализация WebSocket сервера
+
 setupWebSocket(server);
+
+// Создаем экземпляр WebSocket сервера
+const webSocketServer = new setupWebSocket(server);
+
+// Делаем экземпляр доступным для приложения
+app.set('websocket', webSocketServer);
+
+
 console.log('222222');
 // Проверка подключения к БД
 const testDBConnection = async () => {
