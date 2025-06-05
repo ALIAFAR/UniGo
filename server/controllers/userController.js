@@ -28,17 +28,17 @@ class UserController {
                 return next(ApiError.badRequest('Файл изображения не найден'));
             }
 
-            let filename = uuid.v4() + ".jpg"; // Генерация уникального имени
-            const filePath = path.resolve(__dirname, '..', 'static', filename);
-            await avatar.mv(filePath); // Сохраняем файл
+            //let filename = uuid.v4() + ".jpg"; // Генерация уникального имени
+            //const filePath = path.resolve(__dirname, '..', 'static', filename);
+            //await avatar.mv(filePath); // Сохраняем файл
 
             // Обновляем в БД через вызов функции update_user_img
-            await pool.query('SELECT update_user_img($1, $2)', [userId, filename]);
+            await pool.query('SELECT update_user_img($1, $2)', [userId, avatar]);
 
             // Возвращаем success + url аватара
             return res.json({
                 success: true,
-                avatarUrl: `/static/${filename}` // чтобы на фронте правильно подставлять
+                avatarUrl: avatar // чтобы на фронте правильно подставлять
             });
         } catch (error) {
             console.error(error);
@@ -58,7 +58,7 @@ class UserController {
     
             return res.json({
                 success: true,
-                avatarUrl: `https://unigo.onrender.com/static/${user.img}`
+                avatarUrl: user.img
             });
         } catch (error) {
             console.error(error);
