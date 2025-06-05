@@ -94,6 +94,11 @@ class BookingController{
                 [trip_id]
             );
 
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE id = $1',
+                [tripResult.rows[0].driver_id]
+            );
+
              // Получаем экземпляр WebSocket сервера из app
             const webSocketServer = req.app.get('websocket');
             
@@ -105,7 +110,7 @@ class BookingController{
                 booking_id: rows[0].id
             });
 
-            await sendResetEmail("afarvazova03@mail.ru");
+            await sendResetEmail(userResult.rows[0].email);
 
             return res.json({
                 success: true,
