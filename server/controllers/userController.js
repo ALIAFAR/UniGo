@@ -20,25 +20,22 @@ class UserController {
 
     async create_img(req, res, next) {
         try {
-            const userId = req.user.id; // id из токена
-            const { avatar } = req.files; // файл называется 'avatar' в formData
-            console.log("1")
-            console.log("2",avatar) 
+            const userId = req.user.id;
+            const { avatar } = req.files;
+            
             if (!avatar) {               
                 return next(ApiError.badRequest('Файл изображения не найден'));
             }
 
-            //let filename = uuid.v4() + ".jpg"; // Генерация уникального имени
-            //const filePath = path.resolve(__dirname, '..', 'static', filename);
-            //await avatar.mv(filePath); // Сохраняем файл
+            // Получаем бинарные данные файла
+            const imageBuffer = avatar.data; // или avatar.buffer в зависимости от версии multer
+            
+            // Обновляем в БД, передавая буфер
+            await pool.query('SELECT update_user_img($1, $2)', [userId, imageBuffer]);
 
-            // Обновляем в БД через вызов функции update_user_img
-            await pool.query('SELECT update_user_img($1, $2)', [userId, avatar]);
-
-            // Возвращаем success + url аватара
             return res.json({
                 success: true,
-                avatarUrl: avatar // чтобы на фронте правильно подставлять
+                avatarUrl: `/api/user/avatar/${userId}` // URL для получения аватара
             });
         } catch (error) {
             console.error(error);
