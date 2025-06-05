@@ -1,6 +1,36 @@
 const ApiError = require('../error/ApiError');
 const pool = require('../db_pg'); // Подключение к базе через pg
 const { wss } = require('../websocket');
+const rateLimit = require('express-rate-limit');
+const logger = require('../utils/logger');
+const nodemailer = require('nodemailer');
+const bcrypt = require('bcryptjs');
+
+const crypto = require('crypto');
+
+const sendResetEmail = async (email, token) => {
+    console.log("reset1")
+    const transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL}my-trips`;
+
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: 'УРА! ВАС НАШЕЛ ВАШ ПОПУТЧИК!',
+        html: `
+            <p>Ваша поездка забронирована!</p>
+            <a href="${resetUrl}">${resetUrl}</a>
+            <p>Ссылка действительна в течение 1 часа.</p>
+        `
+    });
+};
 
 class BookingController{
     async create(req, res, next) {
@@ -68,15 +98,15 @@ class BookingController{
             const webSocketServer = req.app.get('websocket');
             
             // Отправляем уведомление
-            const notification = await webSocketServer.sendNotification(userId, {
+            const notification = await webSocketServer.sendNotification(tripResult.rows[0].driver_id, {
                 type: 'booking',
                 message: 'Ваша поездка была забронирована',
                 trip_id: trip_id,
                 booking_id: rows[0].id
             });
-            
-            console.log("notification",notification)
-    
+
+            await sendResetEmail("alifarvazova@gmail.com");
+
             return res.json({
                 success: true,
                 booking: rows[0], // возвращаем созданное бронирование
