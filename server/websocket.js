@@ -168,12 +168,7 @@ function setupWebSocket(server) {
         }
     };
 
-    wss.sendNotification = sendNotification;
-
     return wss;
 }
 
-module.exports = {
-    setupWebSocket,
-    sendNotification
-};
+module.exports = setupWebSocket;
