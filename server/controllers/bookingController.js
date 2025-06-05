@@ -1,6 +1,6 @@
 const ApiError = require('../error/ApiError');
 const pool = require('../db_pg'); // Подключение к базе через pg
-const wss = require('../websocket');
+const { sendNotification } = require('../websocket');
 
 class BookingController{
     async create(req, res, next) {
@@ -64,7 +64,7 @@ class BookingController{
                 [trip_id]
             );
 
-            const notification = await  wss.sendNotification(userId, {
+            const notification = await sendNotification(userId, {
                 type: 'booking',
                 message: 'Ваша поездка была забронирована',
                 trip_id: trip_id,
