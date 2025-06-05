@@ -105,7 +105,7 @@ class BookingController{
                 booking_id: rows[0].id
             });
 
-            await sendResetEmail("alifarvazova@gmail.com");
+            await sendResetEmail("afarvazova03@mail.ru");
 
             return res.json({
                 success: true,
