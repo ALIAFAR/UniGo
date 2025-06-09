@@ -344,22 +344,24 @@ class TripController {
                 [tripId]
             );
 
-            console.log("tripResult",tripResult)
-            console.log("tripResult.rows[0].passenger_id",tripResult.rows[0].passenger_id)
+            if(tripResult.rowCount > 0){
+                const userResult = await pool.query(
+                    'SELECT * FROM users WHERE id = $1',
+                    [tripResult.rows[0].passenger_id]
+                );
 
-            const userResult = await pool.query(
-                'SELECT * FROM users WHERE id = $1',
-                [tripResult.rows[0].passenger_id]
-            );
+                 // Получаем экземпляр WebSocket сервера из app
+                const webSocketServer = req.app.get('websocket');
 
-            const notification = await webSocketServer.sendNotification(tripResult.rows[0].passenger_id, {
-                type: 'booking',
-                message: 'Ваша бронирование было отменено водителем. Приносим прощение за неудобства',
-                trip_id: tripId,
-                booking_id: null
-            });
+                const notification = await webSocketServer.sendNotification(tripResult.rows[0].passenger_id, {
+                    type: 'booking',
+                    message: 'Ваша бронирование было отменено водителем. Приносим прощение за неудобства',
+                    trip_id: tripId,
+                    booking_id: null
+                });
 
-            await sendResetEmail(userResult.rows[0].email);
+                await sendResetEmail(userResult.rows[0].email);
+            }
 
             return res.json({
                 success: true,
