@@ -315,6 +315,7 @@ class TripController {
     }
 
     async cancell_trip(req, res, next) {
+        console.log("check trip cancelled")
         try {
             //const userId = req.user.id;
             const tripId = req.params.id;
