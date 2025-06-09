@@ -341,7 +341,7 @@ class TripController {
             // Получаем обновлённые данные поездки
             const tripResult = await pool.query(
                 'SELECT * FROM bookings WHERE trip_id = $1',
-                [trip_id]
+                [tripId]
             );
 
             const userResult = await pool.query(
