@@ -1,6 +1,34 @@
 const ApiError = require('../error/ApiError');
 const pool = require('../db_pg');
 
+const nodemailer = require('nodemailer');
+const bcrypt = require('bcryptjs');
+
+const crypto = require('crypto');
+
+const sendResetEmail = async (email, token) => {
+    console.log("reset1")
+    const transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL}my-trips`;
+
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: 'ВАШЕ БРОНИРОВАНИЕ ОТМЕНЕНО!',
+        html: `
+            <p>Ваше бронирование было отменено водителем!</p>
+            <a href="${resetUrl}">${resetUrl}</a>
+        `
+    });
+};
+
 class TripController {
     async create(req, res, next) {
         console.log("check 0")
@@ -257,34 +285,88 @@ class TripController {
     }  
 
     async checkDriverStatus(req, res, next) {
-    try {
-        const userId = req.user.id;
-        
-        // Проверяем статус водителя
-        const { rows } = await pool.query(
-            'SELECT driver_status FROM users WHERE id = $1',
-            [userId]
-        );
+        try {
+            const userId = req.user.id;
+            
+            // Проверяем статус водителя
+            const { rows } = await pool.query(
+                'SELECT driver_status FROM users WHERE id = $1',
+                [userId]
+            );
 
-        if (rows.length === 0) {
-            return res.json({ isDriver: false, message: 'Пользователь не найден' });
+            if (rows.length === 0) {
+                return res.json({ isDriver: false, message: 'Пользователь не найден' });
+            }
+
+            const isDriver = rows[0].driver_status === 2;
+            
+            return res.json({ 
+                success: true,
+                isDriver,
+                message: isDriver 
+                    ? 'Пользователь является подтвержденным водителем' 
+                    : 'Пользователь не является подтвержденным водителем'
+            });
+
+        } catch (error) {
+            console.error('Ошибка при проверке статуса водителя:', error);
+            return next(ApiError.internal('Ошибка при проверке статуса водителя'));
         }
-
-        const isDriver = rows[0].driver_status === 2;
-        
-        return res.json({ 
-            success: true,
-            isDriver,
-            message: isDriver 
-                ? 'Пользователь является подтвержденным водителем' 
-                : 'Пользователь не является подтвержденным водителем'
-        });
-
-    } catch (error) {
-        console.error('Ошибка при проверке статуса водителя:', error);
-        return next(ApiError.internal('Ошибка при проверке статуса водителя'));
     }
-}
+
+    async cancell_trip(req, res, next) {
+        try {
+            //const userId = req.user.id;
+            const tripId = req.params.id;
+            //const { seats_booked } = req.body;
+
+            console.log(`Отмена поездки ${tripId}}`);
+
+            // 3. Обновляем статус бронирования
+            const { rowCount } = await pool.query(
+                `UPDATE trips
+                SET trip_status = 'canceled'
+                WHERE id = $1`,
+                [tripId]
+            );
+
+            await pool.query(
+                `UPDATE bookings
+                SET reservation_status = 'cancel'
+                WHERE trip_id = $1`,
+                [tripId]
+            );
+
+            // Получаем обновлённые данные поездки
+            const tripResult = await pool.query(
+                'SELECT * FROM bookings WHERE trip_id = $1',
+                [trip_id]
+            );
+
+            const userResult = await pool.query(
+                'SELECT * FROM users WHERE id = $1',
+                [tripResult.rows[0].passenger_id]
+            );
+
+            const notification = await webSocketServer.sendNotification(tripResult.rows[0].passenger_id, {
+                type: 'booking',
+                message: 'Ваша бронирование было отменено водителем. Приносим прощение за неудобства',
+                trip_id: tripId,
+                booking_id: null
+            });
+
+            await sendResetEmail(userResult.rows[0].email);
+
+            return res.json({
+                success: true,
+                message: 'Бронирование успешно отменено'
+            });
+
+        } catch (error) {
+            console.error(error);
+            return next(ApiError.internal('Ошибка при отмене бронирования'));
+        }
+    }
 
 }
 
