@@ -344,6 +344,8 @@ class TripController {
                 [tripId]
             );
 
+            console.log("tripResult",tripResult)
+
             const userResult = await pool.query(
                 'SELECT * FROM users WHERE id = $1',
                 [tripResult.rows[0].passenger_id]
